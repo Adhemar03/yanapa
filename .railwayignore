@@ -1,0 +1,7 @@
+# This file tells Railway to use the Dockerfile for building
+.git
+.gitignore
+.idea
+.vscode
+.DS_Store
+*.log
