@@ -9,6 +9,12 @@
 
 ## 🎯 Tu Checklist - 5 Pasos (15 minutos)
 
+### 💡 Nota Importante
+En Railway, la opción de carpeta **NO aparece al conectar el repo**. Debes:
+1. Conectar el repo (como se muestra abajo)
+2. Luego, en **Settings** del servicio, especificar **Root Directory**
+3. Guardar y Railway redeploya automáticamente
+
 ### PASO 1: Ve a Railway
 1. Abre https://railway.app
 2. Click "Login" → "Continue with GitHub"
@@ -22,23 +28,33 @@
 3. Railway pide autorización → autoriza
 4. Busca `Adhemar03/yanapa` → click
 5. Click "Confirm"
-6. **IMPORTANTE**: Select `services/users` en la carpeta
-7. Click "Deploy"
+6. Railway conecta el repo
+
+**AHORA: Especifica la carpeta (IMPORTANTE)**
+1. Espera que aparezca el servicio en el dashboard
+2. Click en el servicio recién creado
+3. Ve a tab **"Settings"**
+4. Busca **"Root Directory"** 
+5. Ingresa: `services/users`
+6. Click "Save"
+7. Railway automáticamente va a hacer redeploy
 
 **Espera 2-3 minutos**
 
 Cuando veas ✅ "Deployment Successful":
 *(Railway automáticamente detecta el Dockerfile en services/users y lo usa para buildear)*
 
-1. Click en el servicio "yanapa" (users)
+**Configura Variables de Entorno:**
+1. En Railway, click en el servicio
 2. Ve a tab **"Variables"**
-3. Verifica que tenga estos valores (ya están):
+3. Verifica que tenga estos valores (ya están en .env):
    ```
    PORT=4000
    JWT_SECRET=yanapa-users-secret-dev
    SUPABASE_URL=https://xtzomnweoicmnrfsijfy.supabase.co
    SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    CORS_ORIGIN=*
+   NODE_ENV=production
    ```
 4. Railway redeploya automáticamente si cambias algo
 
@@ -56,21 +72,26 @@ https://yanapa-users-prod-xxxx.railway.app
 2. Click **"Deploy from GitHub repo"**
 3. Busca `Adhemar03/yanapa` → click
 4. Click "Confirm"
-5. **IMPORTANTE**: Select `services/requests` en la carpeta
-6. Click "Deploy"
+
+**Especifica la carpeta:**
+1. Click en el nuevo servicio
+2. Ve a tab **"Settings"**
+3. Especifica **"Root Directory"**: `services/requests`
+4. Click "Save"
+5. Railway redeploya
 
 **Espera 2-3 minutos**
 
 Cuando veas ✅ "Deployment Successful":
-1. Click en el servicio "requests"
-2. Ve a tab **"Variables"**
-3. Verifica que tenga (ya están):
+1. Ve a tab **"Variables"**
+2. Verifica que tenga (ya están):
    ```
    PORT=4002
    JWT_SECRET=yanapa-users-secret-dev
    SUPABASE_URL=https://xtzomnweoicmnrfsijfy.supabase.co
    SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    CORS_ORIGIN=*
+   NODE_ENV=production
    ```
 
 **Anota tu URL de Requests Service** (ejemplo):
@@ -87,21 +108,26 @@ https://yanapa-requests-prod-yyyy.railway.app
 2. Click **"Deploy from GitHub repo"**
 3. Busca `Adhemar03/yanapa` → click
 4. Click "Confirm"
-5. **IMPORTANTE**: Select `services/technicians` en la carpeta
-6. Click "Deploy"
+
+**Especifica la carpeta:**
+1. Click en el nuevo servicio
+2. Ve a tab **"Settings"**
+3. Especifica **"Root Directory"**: `services/technicians`
+4. Click "Save"
+5. Railway redeploya
 
 **Espera 2-3 minutos**
 
 Cuando veas ✅ "Deployment Successful":
-1. Click en el servicio "technicians"
-2. Ve a tab **"Variables"**
-3. Verifica que tenga (ya están):
+1. Ve a tab **"Variables"**
+2. Verifica que tenga (ya están):
    ```
    PORT=4001
    JWT_SECRET=yanapa-users-secret-dev
    SUPABASE_URL=https://xtzomnweoicmnrfsijfy.supabase.co
    SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    CORS_ORIGIN=*
+   NODE_ENV=production
    ```
 
 **Anota tu URL de Technicians Service** (ejemplo):
@@ -158,13 +184,29 @@ Deberías ver:
 
 ## ⚡ Notas Importantes
 
+## ⚡ Notas Importantes
+
 | Item | Valor |
 |------|-------|
 | GitHub Repo | https://github.com/Adhemar03/yanapa |
 | Rama | develop |
+| Root Directory (Users) | `services/users` |
+| Root Directory (Requests) | `services/requests` |
+| Root Directory (Technicians) | `services/technicians` |
 | Supabase URL | https://xtzomnweoicmnrfsijfy.supabase.co |
-| JWT_SECRET | yanapa-users-secret-dev (igual en ambos services) |
-| CORS | * (permite todos los orígenes en dev) |
+| JWT_SECRET | yanapa-users-secret-dev (igual en todos) |
+| CORS | * (permite todos los orígenes) |
+
+---
+
+## 🎯 Localizar "Root Directory" en Railway
+
+**En el Dashboard de Railway:**
+```
+Proyecto → [Servicio] → Settings → Root Directory
+```
+
+**Ahí ingresas**: `services/users`, `services/requests`, etc.
 
 ---
 
