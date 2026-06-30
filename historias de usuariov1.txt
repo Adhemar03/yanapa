@@ -1,0 +1,1031 @@
+HU001 – Registro mediante cuenta Google
+Información General
+Campo
+Valor
+Código
+HU001
+Nombre
+Registro mediante Google
+Actor
+Cliente / Técnico
+Prioridad
+Alta
+Story Points
+3
+Microservicio
+Users
+Schema
+users_schema
+Estado Kanban
+Backlog
+
+
+Descripción
+Como usuario nuevo,
+quiero registrarme utilizando mi cuenta de Google,
+para acceder rápidamente a Yanapa sin necesidad de crear una contraseña.
+Objetivo
+Reducir el tiempo de registro del usuario aprovechando el mecanismo de autenticación OAuth 2.0 proporcionado por Google.
+Flujo principal
+El usuario abre Yanapa.
+Selecciona "Continuar con Google".
+La aplicación solicita autenticación a Google.
+Google verifica las credenciales.
+Supabase recibe el token OAuth.
+Se crea automáticamente el registro en auth.users.
+El trigger crea el perfil en users_schema.perfiles.
+El sistema redirecciona al Home.
+Flujo alternativo
+El usuario cancela el proceso de autenticación.
+Google devuelve un error.
+No existe conexión a Internet.
+La cuenta Google se encuentra restringida.
+Precondiciones
+El dispositivo debe tener conexión a Internet.
+Google OAuth debe estar habilitado.
+Supabase Auth debe encontrarse operativo.
+Postcondiciones
+El usuario queda autenticado.
+Existe un registro en auth.users.
+Existe un perfil en users_schema.perfiles.
+Se genera un JWT válido.
+Reglas de negocio
+RN-001
+El correo electrónico debe ser único.
+RN-002
+No podrán existir dos perfiles asociados al mismo usuario de Google.
+RN-003
+Todo usuario registrado mediante Google será inicialmente Cliente.
+RN-004
+El sistema obtendrá automáticamente:
+Nombre completo
+Fotografía
+Correo electrónico
+
+
+Base de datos involucrada
+auth.users
+
+↓
+
+users_schema.perfiles
+Endpoint
+POST /auth/google
+Request
+{
+  "provider":"google"
+}
+Response Exitosa
+{
+  "success":true,
+  "token":"JWT",
+  "user":{
+     "id":"UUID"
+  }
+}
+Errores posibles
+Código
+Descripción
+401
+No autorizado
+500
+Error Google OAuth
+503
+Supabase no disponible
+
+
+Criterios de aceptación
+Debe existir un botón "Continuar con Google".
+Debe abrir Google OAuth.
+Debe autenticarse correctamente.
+Debe crear automáticamente el perfil.
+Debe mostrar el Home.
+Debe conservar la sesión.
+HU002 – Registro mediante correo electrónico
+Información General
+Campo
+Valor
+Código
+HU002
+Prioridad
+Alta
+Story Points
+5
+Microservicio
+Users
+
+
+Descripción
+Como usuario nuevo,
+quiero registrarme como cliente utilizando mi correo electrónico,
+para crear una cuenta personalizada dentro de Yanapa.
+Flujo principal
+El usuario abre Yanapa.
+Selecciona Registrarse
+Se abre el formulario de registro.
+Completar:
+Nombre completo
+Teléfono
+Correo
+Contraseña
+Repetir Contraseña
+Validar datos.
+Crear usuario.
+Enviar correo de confirmación.
+Confirmar correo.
+Crear perfil.
+Ingresar al sistema.
+Validaciones
+Correo:
+Obligatorio
+Formato válido
+Contraseña:
+Mínimo 8 caracteres
+Una mayúscula
+Una minúscula
+Un número
+Repetir contraseña:
+Debe coincidir con el campo contraseña
+API
+POST /auth/register
+Criterios de aceptación
+No permitir correos repetidos.
+Mostrar mensajes de validación.
+Enviar correo de confirmación.
+Crear perfil automáticamente.
+HU003 – Inicio de sesión
+Información General
+Campo
+Valor
+Código
+HU003
+Prioridad
+Alta
+Story Points
+2
+
+
+Descripción
+Como usuario registrado,
+quiero iniciar sesión,
+para acceder a mis servicios y solicitudes.
+Flujo principal
+Abrir Login.
+Ingresar correo.
+Ingresar contraseña.
+Validar usuario.
+Obtener JWT.
+Ir al Home.
+API
+POST /auth/login
+Response
+{
+ "token":"JWT",
+ "user":"UUID"
+}
+Criterios de aceptación
+Credenciales válidas.
+Crear sesión.
+Mantener sesión activa.
+Redireccionar al Home.
+HU004 – Recuperar contraseña
+Información General
+Campo
+Valor
+Código
+HU004
+Prioridad
+Alta
+Story Points
+2
+
+
+Descripción
+Como usuario,
+quiero recuperar mi contraseña,
+para volver a ingresar al sistema.
+Flujo
+Presionar "Olvidé mi contraseña".
+Ingresar correo.
+Enviar enlace.
+Cambiar contraseña.
+Confirmar cambio.
+API
+POST /auth/recover
+Criterios de aceptación
+Enviar correo.
+Validar token.
+Permitir nueva contraseña.
+Invalidar enlaces expirados.
+
+HU005 – Cerrar sesión
+Información General
+Campo
+Valor
+Código
+HU005
+Prioridad
+Alta
+Story Points
+1
+Microservicio
+Users
+Schema
+users_schema
+Estado
+Backlog
+
+
+Descripción
+Como usuario autenticado,
+quiero cerrar mi sesión,
+para impedir que otras personas utilicen mi cuenta desde el mismo dispositivo.
+Objetivo
+Finalizar la sesión del usuario eliminando el token de autenticación almacenado en el dispositivo.
+Flujo Principal
+Usuario abre el menú principal.
+Selecciona "Cerrar sesión".
+El sistema solicita confirmación.
+El usuario confirma.
+Supabase elimina la sesión.
+Se elimina el JWT local.
+Se redirige al Login.
+Flujo Alternativo
+El usuario cancela el cierre de sesión.
+Precondiciones
+Usuario autenticado.
+Postcondiciones
+No existe sesión activa.
+El usuario vuelve al Login.
+API
+POST /auth/logout
+Criterios de aceptación
+Debe solicitar confirmación.
+Debe eliminar el JWT.
+Debe limpiar el almacenamiento local.
+Debe volver al Login.
+Reglas de negocio
+RN-011
+Todo cierre de sesión deberá invalidar el token actual.
+RN-012
+No podrán quedar sesiones activas en el dispositivo después del cierre.
+
+
+HU006 – Editar perfil
+Información General
+Campo
+Valor
+Código
+HU006
+Story Points
+5
+Prioridad
+Alta
+
+
+Descripción
+Como usuario,
+quiero modificar mi información personal,
+para mantener actualizado mi perfil.
+Información editable
+Nombre completo
+Teléfono
+Fotografía
+Flujo principal
+Abrir Perfil.
+Presionar Editar.
+Modificar información.
+Validar datos.
+Guardar cambios.
+Mostrar confirmación.
+API
+PUT /users/profile
+Base de datos
+users_schema.perfiles
+Campos modificados
+nombre_completo
+
+telefono
+
+foto_perfil
+
+fecha_actualizacion
+Validaciones
+Nombre
+obligatorio
+Teléfono
+8 dígitos
+numérico
+
+Criterios de aceptación
+Debe validar información.
+Debe actualizar Supabase.
+Debe reflejar cambios inmediatamente.
+Reglas de negocio
+RN-013
+No podrá modificarse el correo electrónico desde Yanapa.
+RN-014
+El correo será administrado exclusivamente por Supabase Auth.
+HU007 – Actualizar fotografía de perfil
+Información General
+Campo
+Valor
+Código
+HU007
+Prioridad
+Media
+Story Points
+3
+
+
+Descripción
+Como usuario,
+quiero cambiar mi fotografía,
+para personalizar mi perfil.
+Flujo
+Abrir perfil.
+Presionar fotografía.
+Seleccionar Cámara o Galería.
+Subir imagen.
+Guardar en Supabase Storage.
+Actualizar URL.
+Tecnologías
+Flutter Image Picker
+Supabase Storage
+API
+POST /users/photo
+Bucket
+avatars
+Reglas
+Solo JPG
+Solo PNG
+Máximo 5 MB
+Casos de prueba
+Imagen válida
+Imagen mayor a 5 MB
+Formato inválido
+HU008 – Gestión de sesiones
+Información General
+Campo
+Valor
+Código
+HU008
+Prioridad
+Media
+Story Points
+5
+
+
+Descripción
+Como usuario,
+quiero visualizar mis sesiones activas,
+para administrar los dispositivos donde he iniciado sesión.
+Flujo
+Abrir Configuración.
+Ver sesiones activas.
+Seleccionar dispositivo.
+Cerrar sesión remota.
+Información mostrada
+Dispositivo
+Sistema operativo
+Fecha
+Última actividad
+API
+GET /users/sessions
+
+API
+Cerrar sesión remota
+DELETE /users/session/{id}
+
+Criterios
+Mostrar todas las sesiones.
+Permitir cerrar una sesión.
+Actualizar lista.
+
+HU010 – Gestión de roles
+Información General
+Campo
+Valor
+Código
+HU010
+Nombre
+Gestión de Roles
+Prioridad
+Alta
+Story Points
+5
+Microservicio
+Users
+
+Descripción
+Como usuario registrado,
+quiero cambiar mi tipo de usuario entre Cliente y Técnico,
+para poder ofrecer servicios dentro de la plataforma.
+Objetivo
+Administrar los diferentes roles que puede desempeñar un usuario dentro del sistema.
+Roles definidos
+Rol
+Descripción
+Cliente
+Solicita servicios
+Técnico
+Ofrece servicios
+Administrador
+Gestiona la plataforma
+
+
+Flujo principal
+Usuario ingresa a Perfil.
+Selecciona "Convertirme en Técnico".
+El sistema solicita información profesional.
+Se crea el registro en technicians_schema.tecnicos.
+El rol permanece como CLIENTE, pero el usuario adquiere capacidades de técnico.
+Una vez validado, podrá aceptar solicitudes.
+Nota de diseño: En lugar de cambiar el rol en users_schema.perfiles, se recomienda mantener tipo_usuario = CLIENTE y registrar la información profesional en technicians_schema.tecnicos. La aplicación determinará si un usuario puede actuar como técnico verificando la existencia de un registro en esa tabla. Esta aproximación evita inconsistencias y permite que un mismo usuario actúe como cliente y técnico.
+Reglas de negocio
+RN-018
+Todo usuario puede solicitar convertirse en técnico.
+RN-019
+Todo técnico deberá ser validado por un administrador antes de ofrecer servicios.
+RN-020
+Un administrador podrá suspender temporalmente a un técnico.
+Endpoint
+POST /technicians/register
+Criterios de aceptación
+Mostrar formulario profesional.
+Validar información.
+Crear perfil técnico.
+Enviar solicitud de validación.
+Matriz de trazabilidad
+Historia
+Pantalla
+API
+Microservicio
+Base de datos
+HU001
+Login
+POST /auth/google
+Users
+auth.users
+HU002
+Registro
+POST /auth/register
+Users
+auth.users
+HU003
+Login
+POST /auth/login
+Users
+auth.users
+HU004
+Recuperar contraseña
+POST /auth/recover
+Users
+auth.users
+HU005
+Perfil
+POST /auth/logout
+Users
+auth.users
+HU006
+Editar Perfil
+PUT /users/profile
+Users
+users_schema.perfiles
+HU007
+Cambiar Foto
+POST /users/photo
+Users
+users_schema.perfiles + Storage
+HU008
+Sesiones
+GET /users/sessions
+Users
+auth.sessions
+HU010
+Registro Técnico
+POST /technicians/register
+Users / Technicians
+technicians_schema
+
+Relación con la Base de Datos
+auth.users
+Historia
+HU001
+HU002
+HU003
+HU004
+HU005
+HU008
+
+
+
+users_schema.perfiles
+Historia
+HU001
+HU002
+HU006
+HU007
+
+
+
+technicians_schema.tecnicos
+Historia
+HU010
+
+
+
+HU011 – Visualizar categorías de técnicos
+Información General
+Campo
+Valor
+Código
+HU011
+Nombre
+Visualizar categorías de técnicos
+Actor
+Cliente
+Prioridad
+Alta
+Story Points
+3
+Microservicio
+Services / Technicians
+Schema
+services_schema / technicians_schema
+Estado Kanban
+Backlog
+
+ 
+Descripción
+Como cliente, quiero visualizar las categorías de técnicos disponibles en Yanapa, para elegir el tipo de servicio que necesito solicitar.
+Objetivo
+Permitir que el cliente conozca las categorías de servicios técnicos disponibles dentro de la aplicación, como electricidad, plomería, cerrajería, limpieza, refrigeración, albañilería, entre otros.
+Flujo principal
+1.     El cliente inicia sesión en Yanapa.
+2.     El sistema muestra la pantalla principal.
+3.     La aplicación muestra las categorías disponibles con nombre, ícono y descripción.
+4.     El cliente selecciona una categoría.
+5.     El sistema redirige al listado de técnicos pertenecientes a esa categoría.
+Flujo alternativo
+·       No existen categorías activas.
+·       No hay conexión a Internet.
+·       El servidor no responde.
+·       La categoría seleccionada no tiene técnicos disponibles.
+Precondiciones
+·       El cliente debe estar autenticado.
+·       Deben existir categorías registradas en la base de datos.
+·       Las categorías deben encontrarse en estado activo.
+Postcondiciones
+·       El cliente visualiza las categorías disponibles.
+·       El sistema permite acceder al listado de técnicos por categoría.
+Reglas de negocio
+Código
+Regla
+RN-021
+Solo se mostrarán categorías activas.
+RN-022
+Cada categoría deberá tener nombre, descripción, ícono y estado.
+RN-023
+Una categoría sin técnicos disponibles podrá mostrarse, pero deberá indicar “Sin técnicos disponibles”.
+
+ 
+Endpoint
+GET /services/categories
+Criterios de aceptación
+·       Debe mostrarse una lista de categorías.
+·       Cada categoría debe mostrar nombre, ícono y descripción.
+·       Solo deben mostrarse categorías activas.
+·       Al seleccionar una categoría, debe abrirse el listado de técnicos.
+·       Si no existen categorías, debe mostrarse un mensaje informativo.
+
+ 
+HU012 – Ver técnicos por categoría con filtros de puntuación y cercanía
+Información General
+Campo
+Valor
+Código
+HU012
+Nombre
+Ver técnicos por categoría con filtros
+Actor
+Cliente
+Prioridad
+Alta
+Story Points
+8
+Microservicio
+Technicians / Location / Reputation
+Schema
+technicians_schema / location_schema / reputation_schema
+Estado Kanban
+Backlog
+
+ 
+Descripción
+Como cliente, quiero ver los técnicos disponibles dentro de una categoría y filtrarlos por puntuación o cercanía, para elegir al técnico más confiable o próximo a mi ubicación.
+Objetivo
+Facilitar la selección de técnicos mediante criterios de confianza y disponibilidad geográfica, permitiendo al cliente tomar una mejor decisión antes de solicitar un servicio.
+Flujo principal
+El cliente ingresa a la pantalla de categorías.
+Selecciona una categoría de servicio.
+El sistema obtiene la ubicación actual del cliente.
+El sistema consulta los técnicos asociados a la categoría seleccionada.
+El cliente aplica filtros: mayor puntuación, más cercano, técnicos disponibles o técnicos 
+El sistema ordena los resultados según el filtro seleccionado.
+El cliente selecciona un técnico para ver su perfil.
+Flujo alternativo
+·       El cliente no otorga permiso de ubicación.
+·       No existen técnicos en la categoría seleccionada.
+·       No existen técnicos cercanos.
+·       El cliente no tiene conexión a Internet.
+·       El servicio de geolocalización no responde.
+Precondiciones
+·       El cliente debe estar autenticado.
+·       La categoría seleccionada debe existir.
+·       Deben existir técnicos registrados y validados.
+·       El dispositivo debe permitir acceso a ubicación para usar el filtro de cercanía.
+Postcondiciones
+·       El cliente visualiza técnicos filtrados por categoría.
+·       El cliente puede ordenar o filtrar técnicos por puntuación y cercanía.
+·       El cliente puede acceder al perfil de un técnico.
+Reglas de negocio
+Código
+Regla
+RN-024
+Solo se mostrarán técnicos validados por el administrador.
+RN-025
+Solo se mostrarán técnicos activos y no suspendidos.
+RN-026
+La puntuación del técnico será calculada con base en las calificaciones recibidas.
+RN-027
+La cercanía será calculada según la ubicación actual del cliente y la ubicación disponible del técnico.
+RN-028
+Si el cliente no permite ubicación, el sistema podrá ordenar solo por puntuación.
+
+ 
+Endpoint
+GET /technicians/category/{categoryId}?sort=rating&distance=true
+Criterios de aceptación
+·       Debe mostrar técnicos por categoría.
+·       Debe permitir ordenar por mayor puntuación.
+·       Debe permitir ordenar por cercanía.
+·       Debe mostrar distancia aproximada del técnico.
+·       Debe mostrar puntuación promedio.
+·       Debe indicar si el técnico está disponible.
+·       No debe mostrar técnicos suspendidos o no validados.
+·       Si no hay técnicos, debe mostrar un mensaje claro.
+
+ HU013 – Ver perfil detallado del técnico
+Información General
+Campo
+Valor
+Código
+HU013
+Nombre
+Ver perfil del técnico
+Actor
+Cliente
+Prioridad
+Alta
+Story Points
+5
+Microservicio
+Technicians / Reputation
+Schema
+technicians_schema / reputation_schema
+Estado Kanban
+Backlog
+
+ 
+Descripción
+Como cliente, quiero ver el perfil detallado de un técnico, para conocer su experiencia, puntuación, especialidad, disponibilidad y datos de contacto antes de solicitar un servicio.
+Objetivo
+Brindar al cliente información suficiente para evaluar la confiabilidad del técnico antes de contactarlo o realizar una solicitud de servicio.
+Flujo principal
+El cliente visualiza el listado de técnicos.
+Selecciona un técnico.
+El sistema consulta la información detallada del técnico.
+La aplicación muestra nombre completo, fotografía, categoría o especialidad, descripción profesional, puntuación promedio, comentarios, cantidad de servicios realizados, distancia aproximada, disponibilidad y número de teléfono.
+El cliente puede iniciar contacto o realizar una solicitud de servicio.
+Flujo alternativo
+·       El técnico ya no está disponible.
+·       El técnico fue suspendido.
+·       No existen calificaciones registradas.
+·       El perfil del técnico está incompleto.
+Precondiciones
+·       El cliente debe estar autenticado.
+·       El técnico debe estar registrado y validado.
+·       El técnico no debe estar suspendido.
+Postcondiciones
+·       El cliente visualiza la información completa del técnico.
+·       El cliente puede decidir si desea contactarlo o solicitar el servicio.
+Reglas de negocio
+Código
+Regla
+RN-029
+Solo podrán visualizarse perfiles de técnicos activos.
+RN-030
+La puntuación promedio se calculará con las calificaciones finalizadas.
+RN-031
+El teléfono del técnico se mostrará únicamente a usuarios autenticados.
+RN-032
+Los comentarios ofensivos o reportados no deberán mostrarse.
+
+ 
+Endpoint
+GET /technicians/{technicianId}
+Criterios de aceptación
+·       Debe mostrar información completa del técnico.
+·       Debe mostrar puntuación promedio.
+·       Debe mostrar comentarios de otros clientes.
+·       Debe mostrar número de teléfono.
+·       Debe mostrar disponibilidad.
+·       Debe permitir acceder a la opción de solicitar servicio.
+·       Debe ocultar técnicos suspendidos.
+ 
+HU014 – Contactar técnico por teléfono
+Información General
+Campo
+Valor
+Código
+HU014
+Nombre
+Contactar técnico por teléfono
+Actor
+Cliente
+Prioridad
+Alta
+Story Points
+3
+Microservicio
+Technicians / Communications
+Schema
+technicians_schema / users_schema / communications_schema
+Estado Kanban
+Backlog
+
+ 
+Descripción
+Como cliente, quiero contactarme con el técnico mediante su número de teléfono, para coordinar detalles del servicio de forma directa y rápida.
+Objetivo
+Permitir comunicación directa entre cliente y técnico mediante llamada telefónica o aplicación de mensajería disponible en el dispositivo.
+Flujo principal
+El cliente ingresa al perfil del técnico.
+El sistema muestra el número de teléfono del técnico.
+El cliente presiona el botón “Llamar”.
+La aplicación abre el marcador telefónico del dispositivo.
+El cliente realiza la llamada.
+El sistema registra el intento de contacto.
+Flujo alternativo
+·       El cliente selecciona “Enviar WhatsApp”.
+·       El técnico no tiene número registrado.
+·       El dispositivo no tiene aplicación telefónica disponible.
+·       El número de teléfono no es válido.
+·       El cliente cancela la llamada.
+Precondiciones
+·       El cliente debe estar autenticado.
+·       El técnico debe tener teléfono registrado.
+·       El técnico debe estar activo y validado.
+·       El dispositivo debe contar con permisos o aplicación para realizar llamadas.
+Postcondiciones
+·       El cliente puede comunicarse con el técnico.
+·       El sistema registra la acción de contacto para trazabilidad.
+Reglas de negocio
+Código
+Regla
+RN-033
+El número telefónico solo será visible para usuarios autenticados.
+RN-034
+Solo se podrá contactar a técnicos activos y validados.
+RN-035
+El sistema registrará la fecha y hora del contacto.
+RN-036
+El técnico podrá ocultar temporalmente su disponibilidad, pero no eliminar su teléfono si está activo en la plataforma.
+
+ 
+Endpoint
+POST /communications/contact
+Criterios de aceptación
+·       Debe mostrar el número telefónico del técnico.
+·       Debe existir botón “Llamar”.
+·       Debe abrir el marcador del teléfono.
+·       Debe permitir opción de WhatsApp si está disponible.
+·       Debe registrar el intento de contacto.
+·       No debe mostrar teléfono de técnicos suspendidos o no validados.
+
+ 
+HU015 – Realizar solicitud de servicio
+Información General
+Campo
+Valor
+Código
+HU015
+Nombre
+Realizar solicitud de servicio
+Actor
+Cliente
+Prioridad
+Alta
+Story Points
+8
+Microservicio
+Services / Requests / Location
+Schema
+services_schema / requests_schema / location_schema
+Estado Kanban
+Backlog
+
+ 
+Descripción
+Como cliente, quiero realizar una solicitud de servicio técnico desde la aplicación, para contratar a un técnico que atienda una necesidad domiciliaria.
+Objetivo
+Permitir que el cliente registre una solicitud de servicio indicando categoría,descripción del problema, ubicación, fecha, hora y datos de contacto, para que un técnico de la aplicación pueda contactar al cliente.
+Flujo principal
+El cliente inicia sesión en Yanapa.
+Presiona “Solicitar servicio”.
+El sistema muestra el formulario de solicitud.
+El cliente completa categoría de servicio, descripción del problema, dirección, ubicación GPS, fecha preferida, hora preferida, imagen opcional del problema y observaciones adicionales.
+El sistema valida los datos.
+El cliente confirma la solicitud.
+El sistema registra la solicitud.
+El cliente visualiza el estado inicial “Pendiente”.
+Flujo alternativo
+·       El cliente solicita servicio sin técnico específico.
+·       El cliente no permite acceso a ubicación.
+·       El técnico ya no está disponible.
+·       Faltan datos obligatorios.
+·       La imagen supera el tamaño permitido.
+·       No existe conexión a Internet.
+Precondiciones
+·       El cliente debe estar autenticado.
+·       Debe existir una categoría activa.
+·       El técnico debe estar activo y validado.
+·       El cliente debe registrar una dirección o ubicación válida.
+Postcondiciones
+·       Se crea una solicitud de servicio.
+·       El técnico recibe notificación.
+·       El cliente puede consultar el estado de la solicitud.
+·       La solicitud queda asociada al cliente, técnico y categoría.
+Reglas de negocio
+Código
+Regla
+RN-037
+Toda solicitud debe pertenecer a una categoría activa.
+RN-038
+Toda solicitud debe tener una descripción del problema.
+RN-039
+La solicitud debe registrar ubicación o dirección de referencia.
+RN-040
+El estado inicial de una solicitud será “PENDIENTE”.
+RN-041
+Una solicitud podrá estar asignada a un técnico específico o quedar abierta para técnicos disponibles.
+RN-042
+Solo técnicos validados podrán recibir solicitudes.
+RN-043
+Las imágenes adjuntas no deberán superar 5 MB.
+
+
+Endpoint
+POST /requests
+Criterios de aceptación
+·       Debe existir botón “Solicitar servicio” en la página principal.
+·       Debe mostrar el formulario de solicitud.
+·       Debe validar descripción, categoría, ubicación y fecha.
+·       Debe permitir seleccionar técnico.
+·       Debe permitir adjuntar imagen opcional.
+·       Debe crear la solicitud en estado “PENDIENTE”.
+·       Debe notificar al técnico.
+·       Debe mostrar confirmación al cliente.
+
+ 
+HU016 – Consultar estado de solicitud de servicio
+Información General
+Campo
+Valor
+Código
+HU016
+Nombre
+Consultar estado de solicitud
+Actor
+Cliente
+Prioridad
+Alta
+Story Points
+5
+Microservicio
+Requests
+Schema
+requests_schema
+Estado Kanban
+Backlog
+
+ 
+Descripción
+Como cliente, quiero consultar el estado de mis solicitudes de servicio, para saber si fueron aceptadas, rechazadas, atendidas o finalizadas.
+Objetivo
+Permitir que el cliente realice seguimiento de sus solicitudes registradas dentro de Yanapa, visualizando el estado actual y los datos principales del servicio.
+Flujo principal
+El cliente ingresa a “Mis solicitudes”.
+El sistema consulta las solicitudes asociadas al cliente.
+La aplicación muestra el listado de solicitudes.
+El cliente selecciona una solicitud.
+El sistema muestra el detalle y estado actual.
+El cliente puede ver información del técnico, categoría, fecha y ubicación.
+Flujo alternativo
+·       El cliente no tiene solicitudes registradas.
+·       La solicitud fue cancelada.
+·       No existe conexión a Internet.
+·       El servidor no responde.
+Precondiciones
+·       El cliente debe estar autenticado.
+·       El cliente debe tener solicitudes registradas para visualizar detalle.
+Postcondiciones
+·       El cliente visualiza el estado de sus solicitudes.
+·       El cliente puede hacer seguimiento al servicio.
+Estados posibles de una solicitud
+Estado
+Descripción
+PENDIENTE
+La solicitud fue creada y espera respuesta del técnico.
+ACEPTADA
+El técnico aceptó atender el servicio.
+RECHAZADA
+El técnico rechazó la solicitud.
+
+
+
+
+EN_PROCESO
+El técnico está atendiendo el servicio.
+FINALIZADA
+El servicio fue concluido.
+CANCELADA
+El cliente canceló la solicitud.
+
+ 
+Reglas de negocio
+Código
+Regla
+RN-044
+El cliente solo podrá ver sus propias solicitudes.
+RN-045
+El estado de la solicitud solo podrá cambiar según el flujo permitido.
+RN-046
+Una solicitud finalizada no podrá volver a estado pendiente.
+
+ 
+Endpoint
+GET /requests/my
+Criterios de aceptación
+·       Debe mostrar listado de solicitudes del cliente.
+·       Debe mostrar estado actual.
+·       Debe mostrar técnico asignado.
+·       Debe mostrar fecha y categoría.
+·       Debe permitir ver detalle de cada solicitud.
+·       No debe mostrar solicitudes de otros clientes.
+3. Matriz de trazabilidad actualizada
+Historia
+Pantalla
+API
+Microservicio
+Base de datos
+HU011
+Categorías
+GET /services/categories
+Services
+services_schema.categorias_servicio
+HU012
+Técnicos por categoría
+GET /technicians/category/{categoryId}
+Technicians / Location / Reputation
+technicians_schema / location_schema / reputation_schema
+HU013
+Perfil técnico
+GET /technicians/{technicianId}
+Technicians / Reputation
+technicians_schema / reputation_schema
+HU014
+Contactar técnico
+POST /communications/contact
+Communications
+communications_schema.contactos
+HU015
+Solicitar servicio
+POST /requests
+Requests / Services / Location
+requests_schema / services_schema / location_schema
+HU016
+Mis solicitudes
+GET /requests/my
+Requests
+requests_schema.solicitudes_servicio
+
+ 
+4. Dependencias sugeridas
+HU001 / HU002 ──► HU003 ──► HU011 ──► HU012 ──► HU013
+                                       │        	│
+                                       │        	├──► HU014
+                                       │        	└──► HU015 ──► HU016
+5. Resumen del flujo del cliente
+Las historias agregadas cubren el flujo principal del cliente dentro de Yanapa: visualizar categorías, filtrar técnicos por categoría, revisar el perfil del técnico, contactar al técnico por teléfono, realizar la solicitud de servicio y consultar el estado de la solicitud. Este flujo permite que la aplicación móvil responda al objetivo central del proyecto: conectar clientes con técnicos domiciliarios de manera rápida, organizada y trazable.

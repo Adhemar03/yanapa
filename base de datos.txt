@@ -1,0 +1,339 @@
+CREATE SCHEMA IF NOT EXISTS users_schema;
+CREATE SCHEMA IF NOT EXISTS technicians_schema;
+CREATE SCHEMA IF NOT EXISTS services_schema;
+CREATE SCHEMA IF NOT EXISTS payments_schema;
+CREATE SCHEMA IF NOT EXISTS reputation_schema;
+CREATE SCHEMA IF NOT EXISTS notifications_schema;
+
+CREATE TABLE users_schema.perfiles (
+
+    id_usuario UUID PRIMARY KEY
+        REFERENCES auth.users(id)
+        ON DELETE CASCADE,
+
+    nombre_completo VARCHAR(200) NOT NULL,
+
+    telefono VARCHAR(20),
+
+    foto_perfil TEXT,
+
+    tipo_usuario VARCHAR(20)
+        NOT NULL
+        DEFAULT 'CLIENTE'
+        CHECK (
+            tipo_usuario IN
+            ('CLIENTE','TECNICO','ADMIN')
+        ),
+
+    activo BOOLEAN DEFAULT TRUE,
+
+    fecha_registro TIMESTAMP
+        DEFAULT NOW(),
+
+    fecha_actualizacion TIMESTAMP
+        DEFAULT NOW()
+);
+
+
+
+CREATE TABLE technicians_schema.categorias (
+
+    id_categoria SERIAL PRIMARY KEY,
+
+    nombre VARCHAR(100)
+        UNIQUE NOT NULL,
+
+    descripcion TEXT,
+
+    icono TEXT,
+
+    activo BOOLEAN DEFAULT TRUE
+);
+
+
+
+CREATE TABLE technicians_schema.tecnicos (
+
+    id_tecnico UUID PRIMARY KEY
+        DEFAULT gen_random_uuid(),
+
+    usuario_id UUID NOT NULL,
+
+    descripcion TEXT,
+
+    experiencia_anios INTEGER DEFAULT 0,
+
+    documento_identidad VARCHAR(30),
+
+    foto_perfil TEXT,
+
+    promedio_calificacion NUMERIC(3,2)
+        DEFAULT 0,
+
+    cantidad_servicios INTEGER
+        DEFAULT 0,
+
+    validado BOOLEAN
+        DEFAULT FALSE,
+
+    disponible BOOLEAN
+        DEFAULT TRUE,
+
+    fecha_registro TIMESTAMP
+        DEFAULT NOW()
+);
+
+CREATE TABLE technicians_schema.tecnico_categoria (
+
+    id BIGSERIAL PRIMARY KEY,
+
+    id_tecnico UUID NOT NULL
+        REFERENCES technicians_schema.tecnicos(id_tecnico)
+        ON DELETE CASCADE,
+
+    id_categoria INTEGER NOT NULL
+        REFERENCES technicians_schema.categorias(id_categoria),
+
+    UNIQUE(id_tecnico,id_categoria)
+);
+
+
+
+
+CREATE TABLE services_schema.solicitudes_servicio (
+
+    id_solicitud UUID PRIMARY KEY
+        DEFAULT gen_random_uuid(),
+
+    cliente_id UUID NOT NULL,
+
+    tecnico_id UUID,
+
+    categoria_id INTEGER NOT NULL,
+
+    descripcion TEXT NOT NULL,
+
+    direccion TEXT NOT NULL,
+
+    latitud NUMERIC(10,8),
+
+    longitud NUMERIC(11,8),
+
+    costo_estimado NUMERIC(10,2),
+
+    estado VARCHAR(30)
+        DEFAULT 'PENDIENTE'
+        CHECK(
+            estado IN
+            (
+                'PENDIENTE',
+                'ACEPTADO',
+                'EN_CAMINO',
+                'EN_PROCESO',
+                'FINALIZADO',
+                'CANCELADO'
+            )
+        ),
+
+    fecha_solicitud TIMESTAMP
+        DEFAULT NOW(),
+
+    fecha_inicio TIMESTAMP,
+
+    fecha_finalizacion TIMESTAMP
+);
+
+CREATE TABLE services_schema.historial_estados (
+
+    id_historial BIGSERIAL PRIMARY KEY,
+
+    id_solicitud UUID NOT NULL
+        REFERENCES services_schema.solicitudes_servicio(id_solicitud)
+        ON DELETE CASCADE,
+
+    estado VARCHAR(30),
+
+    observacion TEXT,
+
+    fecha TIMESTAMP
+        DEFAULT NOW()
+);
+
+
+
+CREATE TABLE payments_schema.pagos (
+
+    id_pago UUID PRIMARY KEY
+        DEFAULT gen_random_uuid(),
+
+    solicitud_id UUID NOT NULL,
+
+    codigo_qr TEXT,
+
+    monto NUMERIC(10,2),
+
+    estado_pago VARCHAR(20)
+        DEFAULT 'PENDIENTE'
+        CHECK(
+            estado_pago IN
+            (
+                'PENDIENTE',
+                'PAGADO',
+                'RECHAZADO'
+            )
+        ),
+
+    fecha_generacion TIMESTAMP
+        DEFAULT NOW(),
+
+    fecha_pago TIMESTAMP
+);
+
+
+
+CREATE TABLE payments_schema.transacciones (
+
+    id_transaccion BIGSERIAL PRIMARY KEY,
+
+    id_pago UUID NOT NULL
+        REFERENCES payments_schema.pagos(id_pago)
+        ON DELETE CASCADE,
+
+    referencia_bancaria VARCHAR(100),
+
+    entidad_financiera VARCHAR(100),
+
+    monto NUMERIC(10,2),
+
+    fecha TIMESTAMP
+        DEFAULT NOW()
+);
+
+
+
+CREATE TABLE reputation_schema.calificaciones (
+
+    id_calificacion UUID PRIMARY KEY
+        DEFAULT gen_random_uuid(),
+
+    solicitud_id UUID NOT NULL,
+
+    cliente_id UUID NOT NULL,
+
+    tecnico_id UUID NOT NULL,
+
+    puntuacion INTEGER
+        CHECK(
+            puntuacion BETWEEN 1 AND 5
+        ),
+
+    comentario TEXT,
+
+    fecha TIMESTAMP
+        DEFAULT NOW()
+);
+
+CREATE TABLE reputation_schema.respuestas (
+
+    id_respuesta BIGSERIAL PRIMARY KEY,
+
+    id_calificacion UUID
+        REFERENCES reputation_schema.calificaciones(id_calificacion)
+        ON DELETE CASCADE,
+
+    respuesta TEXT,
+
+    fecha TIMESTAMP
+        DEFAULT NOW()
+);
+
+
+
+CREATE TABLE notifications_schema.notificaciones (
+
+    id_notificacion UUID PRIMARY KEY
+        DEFAULT gen_random_uuid(),
+
+    usuario_id UUID NOT NULL,
+
+    titulo VARCHAR(150),
+
+    mensaje TEXT,
+
+    leida BOOLEAN DEFAULT FALSE,
+
+    tipo VARCHAR(30),
+
+    fecha TIMESTAMP
+        DEFAULT NOW()
+);
+
+
+
+CREATE INDEX idx_perfiles_tipo
+ON users_schema.perfiles(tipo_usuario);
+
+CREATE INDEX idx_tecnico_usuario
+ON technicians_schema.tecnicos(usuario_id);
+
+CREATE INDEX idx_servicio_cliente
+ON services_schema.solicitudes_servicio(cliente_id);
+
+CREATE INDEX idx_servicio_tecnico
+ON services_schema.solicitudes_servicio(tecnico_id);
+
+CREATE INDEX idx_servicio_estado
+ON services_schema.solicitudes_servicio(estado);
+
+CREATE INDEX idx_pago_estado
+ON payments_schema.pagos(estado_pago);
+
+CREATE INDEX idx_calificacion_tecnico
+ON reputation_schema.calificaciones(tecnico_id);
+
+CREATE INDEX idx_notificaciones_usuario
+ON notifications_schema.notificaciones(usuario_id);
+
+
+
+CREATE OR REPLACE FUNCTION actualizar_fecha()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.fecha_actualizacion = NOW();
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_actualizar_perfil
+BEFORE UPDATE
+ON users_schema.perfiles
+FOR EACH ROW
+EXECUTE FUNCTION actualizar_fecha();
+
+
+
+CREATE OR REPLACE FUNCTION users_schema.crear_perfil()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO users_schema.perfiles (
+        id_usuario,
+        nombre_completo,
+        foto_perfil
+    )
+    VALUES (
+        NEW.id,
+        COALESCE(
+            NEW.raw_user_meta_data->>'full_name',
+            NEW.raw_user_meta_data->>'name',
+            'Usuario'
+        ),
+        NEW.raw_user_meta_data->>'avatar_url'
+    );
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+
+
+
