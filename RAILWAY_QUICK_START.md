@@ -77,9 +77,34 @@ https://yanapa-requests-prod-yyyy.railway.app
 
 ---
 
-### PASO 4: (Opcional) Deploya Technicians Service
+### PASO 4: Deploya Technicians Service
 
-Repite el mismo proceso para `services/technicians` si quieres.
+**En Railway Dashboard:**
+1. Click **"+ New Service"**
+2. Click **"Deploy from GitHub repo"**
+3. Busca `Adhemar03/yanapa` → click
+4. Click "Confirm"
+5. **IMPORTANTE**: Select `services/technicians` en la carpeta
+6. Click "Deploy"
+
+**Espera 2-3 minutos**
+
+Cuando veas ✅ "Deployment Successful":
+1. Click en el servicio "technicians"
+2. Ve a tab **"Variables"**
+3. Verifica que tenga (ya están):
+   ```
+   PORT=4001
+   JWT_SECRET=yanapa-users-secret-dev
+   SUPABASE_URL=https://xtzomnweoicmnrfsijfy.supabase.co
+   SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   CORS_ORIGIN=*
+   ```
+
+**Anota tu URL de Technicians Service** (ejemplo):
+```
+https://yanapa-technicians-prod-zzzz.railway.app
+```
 
 ---
 
