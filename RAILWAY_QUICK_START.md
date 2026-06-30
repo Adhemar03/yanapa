@@ -5,6 +5,7 @@
 - ✅ Supabase configurado
 - ✅ Credenciales locales actualizadas
 - ✅ Services listos
+- ✅ **Dockerfiles configurados** (Railway auto-detecta)
 
 ## 🎯 Tu Checklist - 5 Pasos (15 minutos)
 
@@ -27,6 +28,8 @@
 **Espera 2-3 minutos**
 
 Cuando veas ✅ "Deployment Successful":
+*(Railway automáticamente detecta el Dockerfile en services/users y lo usa para buildear)*
+
 1. Click en el servicio "yanapa" (users)
 2. Ve a tab **"Variables"**
 3. Verifica que tenga estos valores (ya están):
@@ -170,22 +173,33 @@ Deberías ver:
 **❌ "Deployment failed"**
 - Verifica que seleccionaste la carpeta correcta (`services/users`, no raíz)
 - Verifica que el repo es público o que Railway tiene acceso
+- Ver [DOCKER_GUIDE.md](DOCKER_GUIDE.md) para troubleshooting de build
 
 **❌ "Connection refused" desde el móvil**
 - Verifica que las URLs en `.env` son las de Railway (no localhost)
 - Recompila el APK
+- Ver "Verificar que Funciona" arriba
 
 **❌ "401 Unauthorized"**
 - Verifica que JWT_SECRET es igual en ambos services
 - En Railway, vuelve a agregar la variable exacta
 
-**❌ Service no se despliega**
-- Ve a Railway → Logs → mira el error
-- Busca el error en `DEPLOYMENT_RAILWAY.md`
+**❌ CORS error en logs**
+- Verifica que CORS_ORIGIN está en variables
+- Agrega: CORS_ORIGIN=*
+
+**❌ Service no se despliega (build failed)**
+- Ve a Railway → Logs → mira el error exacto
+- 99% de casos: problema en Dockerfile o dependencias
+- Ver [DOCKER_GUIDE.md](DOCKER_GUIDE.md) → Troubleshooting
 
 ---
 
-## 📞 URLs Finales (guarda estas)
+## 📚 Documentación Extra
+
+- [DOCKER_GUIDE.md](DOCKER_GUIDE.md) - Guía completa de Dockerfiles
+- [DEPLOYMENT_RAILWAY.md](DEPLOYMENT_RAILWAY.md) - Guía técnica detallada
+- [MOBILE_DEPLOYMENT_GUIDE.md](MOBILE_DEPLOYMENT_GUIDE.md) - Para móvil
 
 ```
 Users:       https://yanapa-users-prod-XXXX.railway.app
